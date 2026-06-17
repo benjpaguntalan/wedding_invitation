@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>RSVP — Benjie & Edness Wedding</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,600&family=Cinzel:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a2744;--orange:#e87722;--orange-l:#f4a855;
+  --gold:#c9a96e;--cream:#fdfaf5;--mid:#5a4a3a;
+}
+html,body{min-height:100%;font-family:'Lato',sans-serif;background:#07101f;overflow-x:hidden}
+
+/* ── PETALS ── */
+#petalCanvas{position:fixed;inset:0;pointer-events:none;z-index:0}
+
+/* ── BACK BUTTON ── */
+#backBtn{
+  position:fixed;top:20px;left:20px;z-index:100;
+  font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.4em;text-transform:uppercase;
+  color:var(--gold);background:rgba(26,39,68,.85);backdrop-filter:blur(10px);
+  border:1px solid rgba(201,169,110,.38);padding:10px 20px;
+  cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:8px;
+  text-decoration:none;
+}
+#backBtn:hover{background:rgba(201,169,110,.15);border-color:var(--gold);color:#fff;transform:translateX(-2px)}
+
+/* ── PAGE ── */
+.page{
+  position:relative;z-index:1;
+  min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:80px 20px 60px;
+}
+
+/* ── HEADER ── */
+.rsvp-header{text-align:center;margin-bottom:48px;animation:fadeUp .9s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+.rsvp-tag{font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.65em;color:var(--gold);text-transform:uppercase;opacity:.75;display:block;margin-bottom:16px}
+.rsvp-names{font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:300;font-size:clamp(2.8rem,8vw,5rem);color:#fff;line-height:1}
+.rsvp-names em{color:var(--orange-l);font-style:normal}
+.rsvp-date{font-family:'Cinzel',serif;font-size:.68rem;letter-spacing:.4em;color:var(--gold);border:1px solid rgba(201,169,110,.35);padding:8px 22px;display:inline-block;margin-top:18px}
+.rsvp-sub{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem;color:rgba(255,255,255,.5);margin-top:14px}
+
+/* ── CARDS ROW ── */
+.cards-row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:24px;
+  max-width:700px;
+  width:100%;
+  animation:fadeUp .9s .15s ease both;
+}
+
+/* ── CHOICE CARD ── */
+.choice-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(201,169,110,.22);
+  padding:40px 28px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .3s;
+  position:relative;
+  overflow:hidden;
+}
+.choice-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  transition:transform .3s;transform:scaleX(0);transform-origin:left;
+}
+.choice-card:hover{
+  background:rgba(255,255,255,.08);
+  transform:translateY(-6px);
+  box-shadow:0 20px 50px rgba(0,0,0,.4);
+}
+.choice-card:hover::before{transform:scaleX(1)}
+.card-attend::before{background:linear-gradient(to right,var(--orange),var(--gold))}
+.card-decline::before{background:linear-gradient(to right,var(--navy),#2a3d6b)}
+.card-icon{font-size:3rem;margin-bottom:18px;display:block;transition:transform .3s}
+.choice-card:hover .card-icon{transform:scale(1.15)}
+.card-title{font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.38em;text-transform:uppercase;color:#fff;margin-bottom:12px}
+.card-desc{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:1.05rem;color:rgba(255,255,255,.55);line-height:1.7;margin-bottom:28px}
+.card-btn{
+  font-family:'Cinzel',serif;font-size:.6rem;letter-spacing:.42em;text-transform:uppercase;
+  padding:13px 24px;cursor:pointer;border-radius:1px;transition:all .26s;
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.btn-attend{background:var(--orange);color:#fff;border:1px solid var(--orange)}
+.btn-attend:hover{background:#c96010;box-shadow:0 8px 28px rgba(232,119,34,.45);transform:translateY(-2px)}
+.btn-decline{background:transparent;color:var(--gold);border:1px solid rgba(201,169,110,.45)}
+.btn-decline:hover{background:rgba(201,169,110,.12);border-color:var(--gold);color:#fff;transform:translateY(-2px)}
+
+/* ── RIPPLE ── */
+.ripple-host{position:relative;overflow:hidden}
+.ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,.22);
+  transform:scale(0);animation:rip .55s linear;pointer-events:none;
+}
+@keyframes rip{to{transform:scale(4);opacity:0}}
+
+/* ── FOOTER ── */
+.rsvp-footer{
+  text-align:center;margin-top:40px;
+  animation:fadeUp .9s .3s ease both;
+}
+.rsvp-footer a{
+  font-family:'Cinzel',serif;font-size:.58rem;letter-spacing:.38em;
+  text-transform:uppercase;color:rgba(255,255,255,.3);
+  text-decoration:none;transition:color .2s;
+}
+.rsvp-footer a:hover{color:var(--gold)}
+.rsvp-hash{
+  font-family:'Cormorant Garamond',serif;font-style:italic;
+  font-size:1rem;color:rgba(255,255,255,.22);margin-top:10px;display:block;
+}
+</style>
+</head>
+<body>
+
+<canvas id="petalCanvas"></canvas>
+
+<a href="wedding-invitation.html" id="backBtn">&#8592; &nbsp;Back to Invitation</a>
+
+<div class="page">
+  <div class="rsvp-header">
+    <span class="rsvp-tag">&#10022; &nbsp; Kindly Reply by November 1, 2026 &nbsp; &#10022;</span>
+    <div class="rsvp-names">Benjie <em>&amp;</em> Edness</div>
+    <div class="rsvp-date">November 18, 2026 &nbsp;&middot;&nbsp; 3:00 PM</div>
+    <p class="rsvp-sub">Will you be joining us on our special day?</p>
+  </div>
+
+  <div class="cards-row">
+    <!-- ATTEND CARD -->
+    <div class="choice-card card-attend">
+      <span class="card-icon">&#127881;</span>
+      <div class="card-title">Will Attend</div>
+      <p class="card-desc">I'm excited to celebrate this beautiful milestone with Benjie &amp; Edness!</p>
+      <button class="card-btn btn-attend ripple-host" id="btnAttend">
+        &#10003;&nbsp; Yes, I Will Be There!
+      </button>
+    </div>
+
+    <!-- DECLINE CARD -->
+    <div class="choice-card card-decline">
+      <span class="card-icon">&#9829;</span>
+      <div class="card-title">Cannot Attend</div>
+      <p class="card-desc">I won't be able to make it, but I'm sending my warmest love and wishes.</p>
+      <button class="card-btn btn-decline ripple-host" id="btnDecline">
+        &#9829;&nbsp; Send My Wishes
+      </button>
+    </div>
+  </div>
+
+  <div class="rsvp-footer">
+    <a href="wedding-invitation.html">&#8592; Return to Invitation</a>
+    <span class="rsvp-hash">#EdnessLoveWithBenj</span>
+  </div>
+</div>
+
+<script>
+(function(){
+
+var FORM_URL = 'https://forms.gle/YbEuWd8sc12T7x6Z6';
+
+// ── RIPPLE ──
+document.querySelectorAll('.ripple-host').forEach(function(btn){
+  btn.addEventListener('click', function(e){
+    var r = document.createElement('span'); r.className = 'ripple';
+    var rect = btn.getBoundingClientRect();
+    var sz = Math.max(rect.width, rect.height) * 2;
+    r.style.cssText = 'width:'+sz+'px;height:'+sz+'px;left:'+(e.clientX-rect.left-sz/2)+'px;top:'+(e.clientY-rect.top-sz/2)+'px';
+    btn.appendChild(r);
+    setTimeout(function(){ r.remove(); }, 600);
+  });
+});
+
+// ── ATTEND → open Google Form ──
+document.getElementById('btnAttend').addEventListener('click', function(){
+  window.location.href = FORM_URL;
+});
+
+// ── DECLINE → open Google Form (same form captures both) ──
+document.getElementById('btnDecline').addEventListener('click', function(){
+  window.location.href = FORM_URL;
+});
+
+// ── CANVAS PETALS ──
+var cv = document.getElementById('petalCanvas');
+var cx = cv.getContext('2d');
+function rsz(){ cv.width = innerWidth; cv.height = innerHeight; }
+rsz(); window.addEventListener('resize', rsz);
+
+var PC = ['#e87722','#f4a855','#f0a840','#e86010','#ffb84d','#d45010','#fac070','#e89030'];
+
+function Petal(){ this.init(true); }
+Petal.prototype.init = function(scatter){
+  this.x    = Math.random() * cv.width;
+  this.y    = scatter ? Math.random() * cv.height : -22;
+  this.w    = 5 + Math.random() * 11;
+  this.h    = this.w * (1.25 + Math.random() * 0.45);
+  this.col  = PC[Math.floor(Math.random() * PC.length)];
+  this.al   = 0.38 + Math.random() * 0.48;
+  this.vy   = 0.28 + Math.random() * 0.52;
+  this.vx   = (Math.random() - 0.5) * 0.35;
+  this.ang  = Math.random() * Math.PI * 2;
+  this.spin = (Math.random() - 0.5) * 0.028;
+  this.swA  = 0.5 + Math.random() * 1.1;
+  this.swF  = 0.003 + Math.random() * 0.006;
+  this.t    = Math.random() * 1000;
+  this.shP  = Math.random() * Math.PI * 2;
+  this.shF  = 0.018 + Math.random() * 0.032;
+};
+Petal.prototype.step = function(){
+  this.t   += 1; this.y += this.vy;
+  this.x   += this.vx + Math.sin(this.t * this.swF) * this.swA;
+  this.ang += this.spin; this.shP += this.shF;
+  if (this.y > cv.height+28 || this.x < -60 || this.x > cv.width+60) this.init(false);
+};
+Petal.prototype.draw = function(){
+  cx.save();
+  cx.translate(this.x, this.y); cx.rotate(this.ang);
+  cx.globalAlpha = this.al * (0.78 + 0.22 * Math.sin(this.shP));
+  cx.beginPath();
+  cx.moveTo(0, -this.h/2);
+  cx.bezierCurveTo( this.w*.82, -this.h*.08,  this.w*.62,  this.h*.42, 0,  this.h/2);
+  cx.bezierCurveTo(-this.w*.62,  this.h*.42, -this.w*.82, -this.h*.08, 0, -this.h/2);
+  cx.fillStyle = this.col; cx.fill();
+  cx.beginPath();
+  cx.moveTo(0, -this.h*.38);
+  cx.bezierCurveTo( this.w*.22, 0,  this.w*.14,  this.h*.22, 0,  this.h*.32);
+  cx.bezierCurveTo(-this.w*.14,  this.h*.22, -this.w*.22, 0, 0, -this.h*.38);
+  cx.fillStyle = 'rgba(255,255,255,0.2)'; cx.fill();
+  cx.restore();
+};
+
+var petals = [];
+for (var i = 0; i < 45; i++) petals.push(new Petal());
+(function loop(){
+  cx.clearRect(0, 0, cv.width, cv.height);
+  petals.forEach(function(p){ p.step(); p.draw(); });
+  requestAnimationFrame(loop);
+})();
+
+})();
+</script>
+</body>
+</html>
